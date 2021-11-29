@@ -3,7 +3,6 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 const singleRes = require('../models/single_response');
-const routingRes = require('../models/routing_res');
 
 const baseUrl = "http://localhost:"+ process.env.SERVER_PORT;
 
@@ -45,17 +44,18 @@ router.get('/', (req, res, next)=>{
 });
 
 router.post('/', (req, res, next)=>{
-    const single_res = new singleRes({
+    const data = {
         _id: new mongoose.Types.ObjectId(),
         content: req.body.content,
         continueContent: req.body.continueContent
-    });
+    };
+    const single_res = new singleRes(data);
     single_res.save()
     .then(result => {
         res.status(201).json({
             message: 'Created single res data',
             data: {
-                id: result._id,
+                _id: result._id,
                 content: result.content,
                 continueContent: result.continueContent,
                 request:{
