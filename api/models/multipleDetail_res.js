@@ -7,4 +7,4 @@ const multipleDetailResSchema = mongoose.Schema({
     continueContent: {type: mongoose.Schema.Types.ObjectId, ref:'routing', default:null}
 });
 
-module.exports = mongoose.model('multiple_detail_res', multipleDetailResSchema);
+module.exports = mongoose.model('multipleDetail_res', multipleDetailResSchema);

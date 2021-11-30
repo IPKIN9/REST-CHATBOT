@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 
 const single_res = require('./api/routes/single_response');
 const multiple_res = require('./api/routes/multiple_response');
+const multiple_detail = require('./api/routes/multipleDetail_res');
 const form_res = require('./api/routes/form_response');
 
 app.use(morgan('dev'));
@@ -25,6 +26,7 @@ mongoose.connect('mongodb+srv://foryou:'+ process.env.MONGO_PW +'@foryou.regjt.m
 
 app.use('/single_res', single_res);
 app.use('/multiple_res', multiple_res);
+app.use('/multiple_detail', multiple_detail);
 app.use('/form_res', form_res);
 
 app.use((req, res, next)=>{

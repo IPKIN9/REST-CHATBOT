@@ -3,28 +3,34 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 const multiple_res = require('../models/multiple_res');
+const multipleDetail_res = require('../models/multipleDetail_res');
 
 const baseUrl = "http://localhost:"+ process.env.SERVER_PORT;
 
 router.get('/', (req, res, next)=>{
-    multiple_res.find()
+    multipleDetail_res.find()
+    .populate('multipleRes', 'content')
     .exec()
     .then(result => {
         const length = result.length;
-        if (length >= 1){
+        if(length >= 1){
             res.status(200).json({
                 dataCount: length,
-                data:result.map(doc => {
+                multiple_detail: result.map(doc => {
                     return {
                         _id: doc._id,
-                        content: doc.content
+                        multipleRes: doc.multipleRes,
+                        content: doc.content,
+                        continueContent: doc.continueContent
                     }
                 }),
                 request:{
                     method: "POST",
-                    url: baseUrl + '/multiple_res/',
+                    url: baseUrl + '/multiple_res',
                     body:{
-                        content: "String"
+                        multiRes: "Mongo objectID",
+                        content: "String",
+                        continueContent: "Mongo objectID"
                     }
                 }
             });
@@ -34,7 +40,7 @@ router.get('/', (req, res, next)=>{
     })
     .catch(err => {
         res.status(500).json({
-            message:err
+            error: err
         });
         console.log(err);
     })
@@ -43,46 +49,67 @@ router.get('/', (req, res, next)=>{
 router.post('/', (req, res, next)=>{
     const data = {
         _id: new mongoose.Types.ObjectId(),
-        content: req.body.content
-
+        multipleRes: req.body.multipleRes,
+        content: req.body.content,
+        continueContent: req.body.continueContent
     }
-    const multiple = new multiple_res(data);
-    multiple.save()
-    .then(result => {
-        res.status(201).json({
-            message: 'Created multiple res data',
-            data:{
-                _id: result._id,
-                content: result.content,
-                request: {
-                    method: 'get',
-                    url:baseUrl + '/multiple_res/' + result._id
-                }
-            }
-        });
+    multiple_res.findById(data.multipleRes).then(result => {
+        if(!result){
+            res.status(404).json({
+                message: 'multipleRes data not found'
+            });
+        } else {
+            const multipleDetail = new multipleDetail_res(data);
+            multipleDetail.save()
+            .then(success => {
+                res.status(201).json({
+                    message: 'Multiple detail respons created',
+                    data: {
+                        _id: success._id,
+                        multipleRes: success.multipleRes,
+                        content: success.content,
+                        continueContent: success.continueContent,
+                        request: {
+                            method: 'get',
+                            url:baseUrl + '/multiple_res/' + result._id
+                        }
+                    }
+                });
+            })
+            .catch(err => {
+                res.status(500).json({
+                    message: 'Error data not saved',
+                    error: err
+                });
+            })
+        }
     })
     .catch(err => {
         res.status(500).json({
+            message: 'error',
             error: err
         });
-        console.log(err);
     })
 });
 
 router.get('/:_ID', (req, res, next)=>{
     const ID = req.params._ID;
-    multiple_res.findById(ID)
+    multipleDetail_res.findById(ID)
+    .populate('multipleRes', 'content')
     .exec()
     .then(result => {
-        if (result) {
+        if (result){
             res.status(200).json({
-                _id: result._id,
+                _id: result.id,
+                multipleRes: result.multipleRes,
                 content: result.content,
+                continueContent: result.continueContent,
                 request:{
                     method: "POST",
-                    url: baseUrl + '/multiple_res/',
+                    url: baseUrl + '/multiple_detail/',
                     body:{
                         content: "String",
+                        multipleRes: "Mongo_ID",
                         continueContent: "mongo_ID"
                     }
                 }
@@ -93,40 +120,45 @@ router.get('/:_ID', (req, res, next)=>{
             });
         }
     })
-    .catch(err => {
-        res.status(500).json({
-            error: err.message
-        });
-        console.log(err);
-    })
+    .catch(
+        err => {
+            res.status(500).json({
+                error: err.message
+            });
+            console.log(err);
+        }
+    )
 });
 
 router.patch('/:_ID', (req, res, next)=>{
     const ID = req.params._ID;
     const data = {
+        multipleRes: req.body.multipleRes,
         content: req.body.content,
         continueContent: req.body.continueContent
     }
-    multiple_res.where({_id:ID}).update(data)
+    multipleDetail_res.where({_id:ID}).update(data)
     .then(
         res.status(200).json({
             message: 'Data updated',
             request:{
                 method: 'get',
-                url:baseUrl + '/multiple_res/' + ID
+                url:baseUrl + '/multiple_detail/' + ID
             }
         })
     )
-    .catch(err => {
-        res.status(500).json({
-            error: err
-        });
-    })
+    .catch(
+        err => {
+            res.status(500).json({
+                error: err
+            });
+        }
+    )
 });
 
 router.delete('/:_ID', (req, res, next)=>{
     const ID = req.params._ID;
-    multiple_res.remove({_id:ID})
+    multipleDetail_res.remove({_id:ID})
     .exec()
     .then(result => {
         if (result.deletedCount >= 1){
@@ -135,8 +167,9 @@ router.delete('/:_ID', (req, res, next)=>{
                 deletedCount: result.deletedCount,
                 request: {
                     type: 'POST',
-                    url:baseUrl + '/multiple_res/',
+                    url:baseUrl + '/multiple_detail/',
                     body: {
+                        multipleRes: 'Mongo_ID',
                         content: 'String',
                         continueContent: "Mongo_ID"
                     },
