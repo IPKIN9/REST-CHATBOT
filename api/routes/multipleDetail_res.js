@@ -5,9 +5,11 @@ const mongoose = require('mongoose');
 const multiple_res = require('../models/multiple_res');
 const multipleDetail_res = require('../models/multipleDetail_res');
 
+const checkAuth = require('../middleware/checkAuth');
+
 const baseUrl = "http://localhost:"+ process.env.SERVER_PORT;
 
-router.get('/', (req, res, next)=>{
+router.get('/', checkAuth, (req, res, next)=>{
     multipleDetail_res.find()
     .populate('multipleRes', 'content')
     .exec()
@@ -46,7 +48,7 @@ router.get('/', (req, res, next)=>{
     })
 });
 
-router.post('/', (req, res, next)=>{
+router.post('/', checkAuth, (req, res, next)=>{
     const data = {
         _id: new mongoose.Types.ObjectId(),
         multipleRes: req.body.multipleRes,
@@ -92,7 +94,7 @@ router.post('/', (req, res, next)=>{
     })
 });
 
-router.get('/:_ID', (req, res, next)=>{
+router.get('/:_ID', checkAuth, (req, res, next)=>{
     const ID = req.params._ID;
     multipleDetail_res.findById(ID)
     .populate('multipleRes', 'content')
@@ -130,7 +132,7 @@ router.get('/:_ID', (req, res, next)=>{
     )
 });
 
-router.patch('/:_ID', (req, res, next)=>{
+router.patch('/:_ID', checkAuth, (req, res, next)=>{
     const ID = req.params._ID;
     const data = {
         multipleRes: req.body.multipleRes,
@@ -156,7 +158,7 @@ router.patch('/:_ID', (req, res, next)=>{
     )
 });
 
-router.delete('/:_ID', (req, res, next)=>{
+router.delete('/:_ID', checkAuth, (req, res, next)=>{
     const ID = req.params._ID;
     multipleDetail_res.remove({_id:ID})
     .exec()

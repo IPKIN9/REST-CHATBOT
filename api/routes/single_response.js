@@ -3,10 +3,11 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 const singleRes = require('../models/single_response');
+const checkAuth = require('../middleware/checkAuth');
 
 const baseUrl = "http://localhost:"+ process.env.SERVER_PORT;
 
-router.get('/', (req, res, next)=>{
+router.get('/', checkAuth, (req, res, next)=>{
     singleRes.find()
     .exec()
     .then(result => {
@@ -43,7 +44,7 @@ router.get('/', (req, res, next)=>{
 
 });
 
-router.post('/', (req, res, next)=>{
+router.post('/', checkAuth, (req, res, next)=>{
     const data = {
         _id: new mongoose.Types.ObjectId(),
         content: req.body.content,
@@ -73,7 +74,7 @@ router.post('/', (req, res, next)=>{
     })
 });
 
-router.get('/:_ID', (req, res, next)=>{
+router.get('/:_ID', checkAuth, (req, res, next)=>{
     const ID = req.params._ID;
     singleRes.findById(ID)
     .exec()
@@ -106,7 +107,7 @@ router.get('/:_ID', (req, res, next)=>{
     })
 });
 
-router.patch('/:_ID', (req, res, next)=>{
+router.patch('/:_ID', checkAuth, (req, res, next)=>{
     const ID = req.params._ID;
     const data = {
         content: req.body.content,
@@ -129,7 +130,7 @@ router.patch('/:_ID', (req, res, next)=>{
     })
 });
 
-router.delete('/:_ID', (req, res, next)=>{
+router.delete('/:_ID', checkAuth, (req, res, next)=>{
     const ID = req.params._ID;
     singleRes.remove({_id:ID})
     .exec()
